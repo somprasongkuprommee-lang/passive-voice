@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passive Voice Quiz Challenge</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f39c12;
+            --bg-color: #f4f7f6;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 { text-align: center; color: var(--primary-color); }
+
+        #setup-container, #quiz-container, #result-container {
+            display: none;
+        }
+
+        .active { display: block !important; }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover { background-color: #357abd; }
+
+        .question { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #eee;
+            color: var(--text-color);
+            text-align: left;
+        }
+
+        .option-btn:hover { background: #f9f9f9; border-color: var(--primary-color); }
+
+        .progress { margin-bottom: 20px; font-size: 0.9rem; color: #666; }
+
+        .explanation-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 5px;
+        }
+
+        .correct-text { color: #27ae60; font-weight: bold; }
+        .wrong-text { color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Passive Voice Quiz</h1>
+    
+    <div id="setup-container" class="active">
+        <p>ยินดีต้อนรับ! กรุณากรอกชื่อเพื่อเริ่มทดสอบ (25 ข้อ)</p>
+        <input type="text" id="username" placeholder="ชื่อของคุณ...">
+        <button onclick="startQuiz()">เริ่มเล่นเกม</button>
+    </div>
+
+    <div id="quiz-container">
+        <div class="progress" id="progress">ข้อที่ 1 จาก 25</div>
+        <div class="question" id="question-text"></div>
+        <div class="options-grid" id="options-container"></div>
+    </div>
+
+    <div id="result-container">
+        <h2>สรุปคะแนน</h2>
+        <p id="final-score" style="font-size: 1.5rem; text-align: center;"></p>
+        <hr>
+        <h3>เฉลยและคำอธิบาย</h3>
+        <div id="explanation-list"></div>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        { q: "The cake _______ by my mother yesterday.", o: ["is baked", "was baked", "bakes", "was baking"], a: 1, e: "Past Simple Passive: ใช้ was/were + V.3 เพราะเหตุการณ์เกิดในอดีต (yesterday)" },
+        { q: "English _______ all over the world.", o: ["is spoken", "speaks", "is spoke", "has spoken"], a: 0, e: "Present Simple Passive: ใช้ is/am/are + V.3 บอกความจริงทั่วไป" },
+        { q: "The windows _______ every morning.", o: ["are clean", "are cleaned", "clean", "were cleaned"], a: 1, e: "Present Simple Passive: ประธานเป็นพหูพจน์ใช้ are + V.3" },
+        { q: "The letter _______ by him tomorrow.", o: ["will be sent", "is sent", "will send", "was sent"], a: 0, e: "Future Simple Passive: ใช้ will be + V.3 สำหรับเหตุการณ์ในอนาคต" },
+        { q: "A new road _______ in this area right now.", o: ["is building", "is built", "is being built", "was built"], a: 2, e: "Present Continuous Passive: ใช้ is/am/are + being + V.3 บอกเหตุการณ์ที่กำลังทำอยู่" },
+        { q: "The homework _______ already.", o: ["has been done", "have been done", "is done", "was done"], a: 0, e: "Present Perfect Passive: ใช้ has/have + been + V.3 (Homework เป็นนามนับไม่ได้ใช้ has)" },
+        { q: "The car _______ when I arrived.", o: ["is being repaired", "was being repaired", "repaired", "was repairing"], a: 1, e: "Past Continuous Passive: ใช้ was/were + being + V.3 บอกเหตุการณ์ที่กำลังถูกทำในอดีต" },
+        { q: "Many movies _______ by that director last year.", o: ["were made", "was made", "are made", "made"], a: 0, e: "Past Simple Passive: Movies เป็นพหูพจน์ ใช้ were + V.3" },
+        { q: "The room must _______ before the guests arrive.", o: ["be clean", "be cleaned", "is cleaned", "cleaned"], a: 1, e: "Modal Passive: หลัง modal verbs (must/can/should) ต้องตามด้วย be + V.3" },
+        { q: "This book _______ in 1995.", o: ["is written", "was wrote", "was written", "wrote"], a: 2, e: "Past Simple Passive: ใช้ was + V.3 (write-wrote-written)" },
+        { q: "The trees _______ by the storm.", o: ["were blown down", "was blown down", "blown down", "are blow down"], a: 0, e: "Past Simple Passive: Trees เป็นพหูพจน์ใช้ were" },
+        { q: "My phone _______ stolen at the mall.", o: ["is", "was", "has", "were"], a: 1, e: "Past Simple Passive: ใช้ was + V.3 (stolen) เพื่อบอกว่าถูกขโมยไปแล้ว" },
+        { q: "The project _______ finished by next Friday.", o: ["will be", "is", "was", "will"], a: 0, e: "Future Simple Passive: ใช้ will be เพื่อบอกอนาคต" },
+        { q: "Dinner _______ served at 7 PM every day.", o: ["is", "are", "was", "has"], a: 0, e: "Present Simple Passive: Dinner เป็นเอกพจน์ใช้ is" },
+        { q: "The flowers _______ watered by the gardener now.", o: ["are being", "is being", "were", "are"], a: 0, e: "Present Continuous Passive: Flowers (พหูพจน์) + are being + V.3" },
+        { q: "The bridge _______ since 2010.", o: ["has been used", "is used", "was used", "used"], a: 0, e: "Present Perfect Passive: ใช้ has been + V.3 บอกเหตุการณ์ตั้งแต่ปี 2010 ถึงปัจจุบัน" },
+        { q: "This house _______ by my grandfather.", o: ["built", "was built", "is build", "was build"], a: 1, e: "Past Simple Passive: โครงสร้าง was + V.3 (built)" },
+        { q: "The suspect _______ by the police last night.", o: ["arrested", "was arrested", "is arrested", "were arrested"], a: 1, e: "Past Simple Passive: Suspect (เอกพจน์) ใช้ was" },
+        { q: "Rice _______ in many Asian countries.", o: ["grown", "is grown", "are grown", "grows"], a: 1, e: "Present Simple Passive: Rice (นับไม่ได้) ใช้ is + V.3 (grown)" },
+        { q: "The emails _______ every hour.", o: ["are check", "checked", "are checked", "is checked"], a: 2, e: "Present Simple Passive: Emails (พหูพจน์) ใช้ are + V.3" },
+        { q: "The song _______ by a famous singer tomorrow.", o: ["will perform", "will be performed", "is performed", "was performed"], a: 1, e: "Future Passive: will be + V.3" },
+        { q: "My bicycle _______ fixed yet.", o: ["hasn't been", "isn't", "wasn't", "haven't been"], a: 0, e: "Present Perfect Passive (Negative): hasn't been + V.3" },
+        { q: "The meeting _______ postponed until next week.", o: ["has been", "is", "were", "was"], a: 0, e: "Present Perfect Passive: บอกผลปัจจุบันว่าถูกเลื่อนไปแล้ว" },
+        { q: "Coffee _______ to the customers now.", o: ["is being served", "is serving", "served", "was served"], a: 0, e: "Present Continuous Passive: กำลังถูกเสิร์ฟในขณะนี้" },
+        { q: "The mistake _______ by the student.", o: ["was made", "is make", "made", "was make"], a: 0, e: "Past Simple Passive: was + V.3 (make-made-made)" }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let userName = "";
+    let userAnswers = [];
+
+    function startQuiz() {
+        userName = document.getElementById('username').value;
+        if (!userName) {
+            alert("กรุณากรอกชื่อก่อนเริ่มเล่นครับ");
+            return;
+        }
+        document.getElementById('setup-container').classList.remove('active');
+        document.getElementById('quiz-container').classList.add('active');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = quizData[currentQuestion];
+        document.getElementById('progress').innerText = `คุณ ${userName} กำลังทำข้อที่ ${currentQuestion + 1} จาก ${quizData.length}`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        q.o.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => selectOption(index);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function selectOption(index) {
+        userAnswers.push(index);
+        if (index === quizData[currentQuestion].a) {
+            score++;
+        }
+        
+        currentQuestion++;
+        if (currentQuestion < quizData.length) {
+            showQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-container').classList.remove('active');
+        document.getElementById('result-container').classList.add('active');
+        
+        document.getElementById('final-score').innerText = `คุณ ${userName} ได้คะแนน ${score} / ${quizData.length}`;
+        
+        const list = document.getElementById('explanation-list');
+        quizData.forEach((q, i) => {
+            const div = document.createElement('div');
+            div.className = 'explanation-item';
+            const isCorrect = userAnswers[i] === q.a;
+            div.innerHTML = `
+                <p><strong>ข้อที่ ${i+1}: ${q.q}</strong></p>
+                <p>คุณตอบ: <span class="${isCorrect ? 'correct-text' : 'wrong-text'}">${q.o[userAnswers[i]]}</span></p>
+                <p>คำตอบที่ถูกต้อง: <span class="correct-text">${q.o[q.a]}</span></p>
+                <p><em>คำอธิบาย: ${q.e}</em></p>
+            `;
+            list.appendChild(div);
+        });
+    }
+</script>
+
+</body>
+</html>
